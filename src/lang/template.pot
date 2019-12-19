@@ -1,0 +1,2 @@
+msgid "NAME_AND_SURNAME"
+msgstr ""
