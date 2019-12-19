@@ -19,5 +19,10 @@
   "devDependencies": {
     "gulp": "^4.0.2",
     "gulp-stylus": "^2.7.0"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "gettext-parser": "^4.0.2",
+    "node-gettext": "^2.0.0"
   }
 }
