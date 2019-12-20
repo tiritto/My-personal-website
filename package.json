@@ -4,7 +4,9 @@
   "description": "Project containing source codes of my personal website available at https://dawid.niedzwiedzki.tech/",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "gulp": "gulp",
+    "build": "gulp build"
   },
   "repository": {
     "type": "git",
@@ -17,14 +19,22 @@
   },
   "homepage": "https://github.com/tiritto/My-personal-website#readme",
   "devDependencies": {
+    "browser-sync": "^2.26.7"
   },
   "dependencies": {
-    "gulp": "^4.0.2",
-    "gulp-stylus": "^2.7.0",
     "express": "^4.17.1",
     "gettext-parser": "^4.0.2",
+    "gulp": "^4.0.2",
+    "gulp-autoprefixer": "^7.0.1",
+    "gulp-clean-css": "^4.2.0",
+    "gulp-htmlmin": "^5.0.1",
+    "gulp-imagemin": "^6.2.0",
+    "gulp-nop": "0.0.3",
     "gulp-pug": "^4.0.1",
     "gulp-rename": "^2.0.0",
+    "gulp-replace": "^1.0.0",
+    "gulp-stylus": "^2.7.0",
+    "gulp-terser": "^1.2.0",
     "node-gettext": "^2.0.0"
   }
 }
