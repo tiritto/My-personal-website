@@ -187,20 +187,30 @@ gulp.task('css', () => {
 });
 
 //
+// Task that will automatically run all other tasks to make a build
+//
+gulp.task('build', () => {
+    gulp.parallel('html', 'css', 'js', 'img');
+});
+
+//
 // Default GULP task
 // 
 // While it might not be the best idea to connect default task of gulp to it's watcher methods,
 // this feels like the easiest and most convinient solution in case of my personal website where
 // I am the only person working on that "Project".
 //
-gulp.task('default', () => {
+if (!inProduction) {
+    let browserSync = require("browser-sync").create();
+    gulp.task('default', () => {
 
-    // Don't allow for this behaviour in production
-    if (inProduction) return console.warning("Starting watch process in production environment is not allowed!");
+        // Initialize browser sync for development
+        browserSync.init();
 
-    // Watch file changes
-    gulp.watch(htmlSource, gulp.series('html'));
-    gulp.watch(cssSource, gulp.series('css'));
-    gulp.watch(jsSource, gulp.series('js'));
-    gulp.watch(imageSource, gulp.series('img'));
-});
+        // Watch file changes
+        gulp.watch(htmlSource, gulp.series('html')).on('change', browserSync.reload);
+        gulp.watch(cssSource, gulp.series('css')).on('change', browserSync.reload);
+        gulp.watch(jsSource, gulp.series('js')).on('change', browserSync.reload);
+        gulp.watch(imageSource, gulp.series('img')).on('change', browserSync.reload);
+    });
+}
