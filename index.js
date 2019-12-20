@@ -1,55 +1,32 @@
 console.log("Starting website builder...");
 
 // Loading required libraries
+const gulp = require('gulp');
 const util = require('util');
 const path = require('path');
 const fs = require('fs');
 
-
-const gettextParser = require('gettext-parser');
-
-
-const src = path.join(__dirname, 'src/');
-const build = path.join(__dirname, 'build/');
-console.log(src);
-return 0;
-
-// Importing gulp and gulpfile as I want to run few of its tasks
-const gulp = require('gulp');
-
-const dir = "/srv/discord/websites/hotellewd.com/";
-
-
-
-const destination = path.join(__dirname, 'build/');
-
 // Promisifying few methods for later use
-const readDirectory = util.promisify(fs.readdir);
 const readFile = util.promisify(fs.readFile);
 
-// Prepare few functions that Im going to use later on
-function getTranslation(translationObject, desiredString) {
-    return translationObject.translations[''][desiredString].msgstr[0] || "TRANSLATION_NOT_FOUND";
-}
+// Declaring few constant values
+const inProduction = (process.env.NODE_ENV == 'production');
+const src = path.join(__dirname, 'src/');
+const destination = path.join(__dirname, 'build/');
 
+//
 // Rendering PUG files into static HTML pages with multiple translation variants
-gulp.task('html', () => {
+//
+const pug = require('gulp-pug');
+const rename = require('gulp-rename');
+const htmlmin = require('gulp-htmlmin');
+const gettextParser = require('gettext-parser');
+const htmlSource = src + "pug/*";
+gulp.task('html', async () => {
+    console.log("Checking available translations in /src/lang directory...");
 
-
-
-/*
- * I'm declaring some functions that will come in handy later.
-/*/
-
-
-
-// Check for available translation files
-console.log("Checking available translations in /src/lang directory...");
-const translationsPath = path.join(__dirname, 'src/lang/');
-readDirectory(translationsPath).then(async files => {
-
-    // Filter out all files that are not using .po extension
-    files = files.filter(filename => filename.length == 5 && filename.endsWith('.po'));
+    // Search translations directory and filter out all files that are not using .po extension
+    let files = fs.readdirSync(path.join(__dirname, 'src/lang/')).filter(filename => filename.length == 5 && filename.endsWith('.po'));
 
     // Load and parse all available language files (writed with .po)
     console.log("Attempting to read and parse all translation files...");
@@ -73,23 +50,48 @@ readDirectory(translationsPath).then(async files => {
 
     // Checking if at least single translation has been loaded and parsed without a problem
     if (Object.keys(availableLanguages).length < 1) {
-        console.error("Not a single translation file has been parsed by the process.\nNode process will now be terminated.");
-        process.exitCode = 1; // process.exit() is not recommended by the docs. https://nodejs.org/api/process.html#process_process_exit_code
+        console.error("Not a single translation file has been parsed by the process.\Gulp task will end now.");
+        return;
+        //process.exitCode = 1; // process.exit() is not recommended by the docs. https://nodejs.org/api/process.html#process_process_exit_code
     } 
 
-    //
-    //  Converting Stylus files into CSS and compressing resulted CSS files 
-    //
-
-    // Load Stylus 
-
-
+    // Compile diferent file outputs for each language
     for (const language in availableLanguages) {
-        console.log(getTranslation(availableLanguages[language], 'NAME_AND_SURNAME'))
+
+        // Create a table containing all translation strings that will be passed to PUG parser
+        let translationTable = {};
+        for (const string in availableLanguages[language].translations['']) {
+            translationTable[string] = availableLanguages[language].translations[''][string].msgstr[0];
+        }
+
+        // Begin actual task, renaming files depending on language and parsing .pug files
+        gulp.src(htmlSource)
+            .pipe(rename(path => { path.basename += "_" + language; }))
+            .pipe(pug({
+                locals: translationTable // Passed variables
+            }))
+            .pipe(htmlmin({
+                html5: true,
+                collapseBooleanAttributes: true,
+                collapseWhitespace: true,
+                conservativeCollapse: true,
+                quoteCharacter: '"',
+                removeAttributeQuotes: true,
+                removeComments: true,
+                removeEmptyAttributes: true,
+                removeEmptyElements: true,
+                removeRedundantAttributes: true,
+                removeScriptTypeAttributes: true, // Removes type="text/javascript" from <script> tags. It's their default type in HTML5 so it doesn't matter.
+                removeStyleLinkTypeAttributes: true, // Removes type="text/css" from <style> tags. It's their default type in HTML5 so it doesn't matter.
+                sortAttributes: true, // Sorting attributes will improve effectiveness of GZip compression once file is sent
+                sortClassName: true, // Same as before, but for classes.
+                useShortDoctype: true
+            }))
+            .pipe(gulp.dest(destination));
     }
 
-}).catch(console.error);
-
+    // It's done!
+    return console.log("Website pages has been created!");
 });
 
 //
@@ -104,7 +106,7 @@ gulp.task('img', () => {
             // GIF Optimizer: https://github.com/imagemin/imagemin-gifsicle
             imagemin.gifsicle({
                 interlaced: false,
-                optimizationLevel: 3
+                optimizationLevel: inProduction ? 3 : 1 // Use simple optimization while not in production
             }),
 
             // JPEG Optimizer: https://github.com/imagemin/imagemin-jpegtran
@@ -115,7 +117,7 @@ gulp.task('img', () => {
 
             // PNG Optimizer: https://github.com/imagemin/imagemin-optipng
             imagemin.optipng({
-                optimizationLevel: 7, // 240 trials for production
+                optimizationLevel: inProduction ? 7 : 1, // 240 trials for production, otherwise use just one
                 bitDepthReduction: true,
                 colorTypeReduction: true,
                 paletteReduction: true,
@@ -145,7 +147,7 @@ gulp.task('js', () => {
             'booleans_as_integers': true,
             'drop_console': true, // Discard calls to console.* functions
             'ecma': 6,
-            'passes': 5,
+            'passes': inProduction ? 6 : 1, // Use 6 passes in production, but just one is enough for development
             'unsafe_arrows': true, // Convert ES5 style anonymous function expressions to arrow functions if the function body does not reference 'this'
             'unsafe_math': true, // Optimize numerical expressions like 2 * x * 3 into 6 * x, which may give imprecise floating point results
             'unsafe_methods': true, // Converts { m: function(){} } to { m(){} }
@@ -192,13 +194,13 @@ gulp.task('css', () => {
 // I am the only person working on that "Project".
 //
 gulp.task('default', () => {
+
+    // Don't allow for this behaviour in production
+    if (inProduction) return console.warning("Starting watch process in production environment is not allowed!");
+
+    // Watch file changes
+    gulp.watch(htmlSource, gulp.series('html'));
     gulp.watch(cssSource, gulp.series('css'));
-    gulp.watch(dir+'javascript/*.js', gulp.series('js'));
+    gulp.watch(jsSource, gulp.series('js'));
+    gulp.watch(imageSource, gulp.series('img'));
 });
-
-
-// TODO: Convert /src/pug/*.pug files to HTML and move it to /public/*.html
-
-// TODO: Convert /src/stylus/*.styl files to CSS and move it to /public/*.css
-
-// TODO: Compress /src/js/*.js files and move them to /public/*.js
