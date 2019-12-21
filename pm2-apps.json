@@ -1,0 +1,11 @@
+{
+    "apps": [
+        {
+            "name": "dawid.niedzwiedzki.tech",
+            "script": "./index.js",
+            "max_restarts": 15,
+            "max_memory_restart": "750M",
+            "autorestart": true
+        }
+    ]
+}
