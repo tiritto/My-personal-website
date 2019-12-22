@@ -18,6 +18,4 @@ EXPOSE 3100/tcp
 # Start default process specified in package.json
 CMD ["npm", "start"]
 
-# docker run -e NODE_ENV=production
-# docker run Ubuntu --network=host
-# docker run --cpus=.5 --memory=100m ubuntu
+# docker run -e NODE_ENV=production --cpus=.5 --memory=100m --name="dawid.niedzwiedzki.tech" -d -v /etc/nginx
