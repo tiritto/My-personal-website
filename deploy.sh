@@ -1,31 +1,29 @@
-# Pull new changes from produnction branch from GitHub
-echo "Pulling produnction branch from GitHub..."
-git pull origin production
+#!/bin/bash
 
-# Perform clean install of all packages listed in package.json
-echo "Performing clean install of NPM packages..."
-npm ci
+# This script deploys website docker
+BRANCH="development"
+if [ -n "$1" ]; then
+    BRANCH="$1"
+    echo "This application will be deployed as within '$1' branch."
+else
+    echo "Deployment branch was not specified. Development branch will be used."
+fi
 
-# Clear up previous ./build/ folder just in case
-echo "Clearing out ./build/ directory..."
-rm ./build/* -f -v 
+# Check if specified branch has configuration directory
+if [! -d "./cfg/$BRANCH"]; then
+    echo "Error: Unable to locate '$branch' configuration files. Directory './cfg/$branch/' does not exist!" >&2
+    exit 3
+fi
 
-# Build new website  
-echo "Building new website with Gulp..."
-gulp build
+# Make sure that docker and docker-compose exist on host device 
+if ! [ -x "$(command -v docker)"]; then
+    echo 'Error: docker is not installed or is not executable.' >&2
+    exit 1
+fi
+if ! [ -x "$(command -v docker-compose)"]; then
+    echo 'Error: docker-compose is not installed or is not executable.' >&2
+    exit 2
+fi
 
-# Replace public files with new build
-echo "Replacing public directory with new build contents..."
-mv public public_old
-mv build public
-
-# Remove old public files
-echo "Removing previous ./public/ files..."
-rm public -f -r -v
-
-# Finally, restart watcher application in case it was changed
-echo "Restarting watcher application..."
-pm2 restart dawid.niedzwiedzki.tech
-
-# It is done
-echo "Deploy has been finished!"
+# Deploy to docker-compose
+docker-compose --file ./cfg/docker-compose.defaults.yml --file ./cfg/$BRANCH/docker-compose.yml

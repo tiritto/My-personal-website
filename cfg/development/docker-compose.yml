@@ -1,0 +1,12 @@
+version: '3'
+services:
+    website:
+        container_name: dawid.niedzwiedzki.tech
+        ports:
+            - "3000:80"
+        environment:
+            - APP_ENV=development
+        volumes:
+            - ./src:/srv/src:ro
+        build:
+            context: .

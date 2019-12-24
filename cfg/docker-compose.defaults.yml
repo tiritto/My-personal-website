@@ -1,0 +1,15 @@
+version: '3'
+services:
+    website:
+        container_name: dawid.niedzwiedzki.tech
+        working_dir: /srv/
+        ports:
+            - "3000:80/tcp"
+        volumes:
+            - ./src:/usr/src/dawid.niedzwiedzki.tech/src:ro
+            - /etc/nginx/conf.d/dawid.niedzwiedzki.tech.conf
+        restart: always
+        build:
+            context: .
+            args:
+                workdir_path: "/srv"
