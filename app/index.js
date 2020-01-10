@@ -7,9 +7,11 @@ const path = require('path');
 const webserver = express();
 const port = 80; // Use port number defined in environment variables
 const githubUsername = 'tiritto';
-const isRunningInProduction = process.env.ENV_TIER == 'production';
+const isRunningInProduction = process.env.APP_ENV == 'production';
 
 // Update and deploy all updates in GitHub production branch. Ignore on non-production environments.
+// NOTE: It might be a possibility that someone might use this webhook as vector of an attact on my server
+//       so I might need to write some extra check functions that would make sure that webhook comes from GitHub.
 if (isRunningInProduction) webserver.post("/github", (req, res) => {
     console.log('New push has been submitted to GitHub repository!');
 
@@ -20,7 +22,7 @@ if (isRunningInProduction) webserver.post("/github", (req, res) => {
     const isFromProductionBranch = (req.body.branch.indexOf('production') > -1);
     if (isFromProductionBranch && req.body.sender == githubUsername) {
         console.log('New changes has been pulled into production branch!');
-            childProcess.exec(`cd ${__dirname} && ./deploy.sh`, (error, stdout, stderr) => {
+            childProcess.exec(`cd ${__dirname} && ./update.sh`, (error, stdout, stderr) => {
             return error ? console.error(error) : console.log("Deployment procedure has been issued.");
         });
     }

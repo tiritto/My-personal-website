@@ -1,5 +1,9 @@
+# All operations will be done within /srv/ directory
+echo "Starting remote update procedure..."
+cd /srv
+
 # Pull new changes from produnction branch from GitHub
-echo "Pulling produnction branch from GitHub..."
+echo "Pulling production branch files from GitHub..."
 git pull origin production
 
 # Perform clean install of all packages listed in package.json
@@ -8,7 +12,7 @@ npm ci
 
 # Clear up previous ./build/ folder just in case
 echo "Clearing out ./build/ directory..."
-rm ./build/* -f -v 
+rm ./build/* --force --verbose --recursive
 
 # Build new website  
 echo "Building new website with Gulp..."

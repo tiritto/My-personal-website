@@ -1,0 +1,19 @@
+version: '3'
+services:
+    website:
+        environment:
+            - APP_ENV=production
+        volumes:
+            - nginx_configurations:/etc/nginx/conf.d/
+        build:
+            target: production
+        networks:
+            - nginx_reverse_proxy
+
+networks:
+    nginx_reverse_proxy:
+        external: false
+
+volumes:
+    nginx_configurations:
+        external: false
