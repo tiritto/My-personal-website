@@ -10,22 +10,23 @@ git pull origin production
 echo "Performing clean install of NPM packages..."
 npm ci
 
-# Clear up previous ./build/ folder just in case
-echo "Clearing out ./build/ directory..."
-rm ./build/* --force --verbose --recursive
+# Remove outdated files when updating the website
+rm ./build --force --verbose --recursive
+rm ./public --force --verbose --recursive
+
+
 
 # Build new website  
-echo "Building new website with Gulp..."
-gulp build
+echo "Removing old build files and replacing them with new build..."
+npm build
 
 # Replace public files with new build
-echo "Replacing public directory with new build contents..."
+echo "Replacing public directory with new content of new build..."
 mv public public_old
 mv build public
 
 # Remove old public files
-echo "Removing previous ./public/ files..."
-rm public -f -r -v
+echo "Removing old ./public/ files..."
 
 # Finally, restart watcher application in case it was changed
 echo "Restarting watcher application..."

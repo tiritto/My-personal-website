@@ -9,7 +9,12 @@
 		"start": "nodemon index.js"
 	},
 	"nodemonConfig": {
-		"ignore": ["res/*", "src/*", "./package*.json", "pm2*.json"],
+		"ignore": [
+			"res/*",
+			"src/*",
+			"./package*.json",
+			"pm2*.json"
+		],
 		"delay": "3"
 	},
 	"repository": {
@@ -40,6 +45,7 @@
 		"gulp-stylus": "^2.7.0",
 		"gulp-terser": "^1.2.0",
 		"lodash.template": ">=4.5.0",
-		"node-gettext": "^2.0.0"
+		"node-gettext": "^2.0.0",
+		"nodemon": "^2.0.2"
 	}
 }
