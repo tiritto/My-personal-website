@@ -1,0 +1,9 @@
+ version: '3'
+services:
+    website:
+        environment:
+            - APP_ENV=development
+        volumes:
+            - ./app/:/srv/
+        build:
+            target: development

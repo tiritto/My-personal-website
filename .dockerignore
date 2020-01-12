@@ -1,13 +1,14 @@
-
-# Ignore log files
+# Ignore NPM modules and log files
 npm-debug.log
-
-# Ignore NPM modules
 node_modules
 
 # Ignore git-related files
 .git
 .gitignore
 
-# Ignore license file, there is just no point in having it on the container
+# Ignore license and readme file, there is just no point in having it on the container
 LICENSE
+README
+
+# Ignore env
+.env

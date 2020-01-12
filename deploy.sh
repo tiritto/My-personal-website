@@ -1,31 +1,48 @@
-# Pull new changes from produnction branch from GitHub
-echo "Pulling produnction branch from GitHub..."
-git pull origin production
+#!/bin/bash
+WEBSITE="dawid.niedzwiedzki.tech"
+echo "Building an image for $WEBSITE..."
 
-# Perform clean install of all packages listed in package.json
-echo "Performing clean install of NPM packages..."
-npm ci
+# This script deploys website docker
+BRANCH="development"
+if [ -n "$1" ]; then
+    BRANCH="$1"
+    echo "This application will be deployed as '$1' branch."
+else
+    echo "Deployment branch was not specified. Development branch will be used."
+fi
 
-# Clear up previous ./build/ folder just in case
-echo "Clearing out ./build/ directory..."
-rm ./build/* -f -v 
+# Check if specified branch has configuration directory
+if [! -f "./cfg/docker-compose.$BRANCH.yml"]; then
+    echo "Error: Unable to locate configuration file for docker-compose! Apperantly '$BRANCH' branch is not supported right now!" >&2
+    exit 1
+fi
 
-# Build new website  
-echo "Building new website with Gulp..."
-gulp build
+# Make sure that all required commands exist on host device 
+if ! [ -x "$(command -v docker)"]; then
+    echo 'Error: "docker" is not installed or is not executable.' >&2
+    exit 2
+elif ! [ -x "$(command -v docker-compose)"]; then
+    echo 'Error: "docker-compose" is not installed or is not executable.' >&2
+    exit 3
+elif ! [ -x "$(command -v xargs)"]; then
+    echo 'Error: "xargs" is not installed or is not executable.' >&2
+    exit 4
+fi
 
-# Replace public files with new build
-echo "Replacing public directory with new build contents..."
-mv public public_old
-mv build public
+# Prepare environment-dependent configuration
+if [ -d "current_configuration" ]; then
+    rm --force --recursive ./current_configuration/* 
+else
+    mkdir ./current_configuration/
+fi
+cp ./cfg/* ./current_configuration
+cp ./cfg/$BRANCH/* ./current_configuration
 
-# Remove old public files
-echo "Removing previous ./public/ files..."
-rm public -f -r -v
+# Remove all perviously running containers containing this project
+DOCKER_CONTAINER = "$(docker ps -aq -f name=$WEBSITE)"
+if [ -z "$DOCKER_CONTAINER" ]; then
+    docker stop $DOCKER_CONTAINER | xargs docker rm
+fi
 
-# Finally, restart watcher application in case it was changed
-echo "Restarting watcher application..."
-pm2 restart dawid.niedzwiedzki.tech
-
-# It is done
-echo "Deploy has been finished!"
+# Deploy via docker-compose using settings for current environment
+docker-compose up --file ./cfg/docker-compose.defaults.yml --file ./cfg/docker-compose.$BRANCH.yml --build --force-recreate -d

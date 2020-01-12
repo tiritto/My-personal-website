@@ -1,0 +1,12 @@
+version: '3'
+services:
+    website:
+        container_name: dawid.niedzwiedzki.tech
+        working_dir: /srv/
+        ports:
+            - "3000:80/tcp"
+        restart: always
+        build:
+            context: .
+            args:
+                workdir_path: "/srv"
