@@ -28,7 +28,7 @@
 	},
 	"homepage": "https://dawid.niedzwiedzki.tech/",
 	"devDependencies": {
-		"browser-sync": "^2.26.7"
+		"browser-sync": "^2.27.10"
 	},
 	"dependencies": {
 		"express": "^4.17.1",
